@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <body>
+      <div class="slider">
+        <img src="slide1.png" alt="1" />
+        <img src="slide2.png" alt="2" />
+        <img src="slide3.png" alt="3" />
+      </div>
+      <button class="mybutton">点击这里开始</button>
+      <div class="speak"></div>
+    </body>
+    <style>
+      .slider {
+        position: relative;
+        width: 600px;
+        height: 400px;
+      }
+
+      .slider img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        transition: opacity 0.5s;
+      }
+
+      .slider img.active {
+        opacity: 1;
+      }
+    </style>
+    <script>
+      const slider = document.querySelector(".slider");
+      const slides = slider.querySelectorAll("img");
+      let currentSlide = 0;
+      const speak = document.querySelector(".speak");
+      const mybutton = document.querySelector(".mybutton");
+
+      function showSlide(slideIndex) {
+        slides[currentSlide].classList.remove("active");
+        slides[slideIndex].classList.add("active");
+        currentSlide = slideIndex;
+      }
+
+      function nextSlide() {
+        const nextSlideIndex = (currentSlide + 1) % slides.length;
+        showSlide(nextSlideIndex);
+      }
+
+      function prevSlide() {
+        const prevSlideIndex =
+          (currentSlide + slides.length - 1) % slides.length;
+        showSlide(prevSlideIndex);
+      }
+
+      let recorder;
+      let chunks = [],
+        chunkList = [];
+      let flag = false;
+      navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+        recorder = new window.MediaRecorder(stream);
+        recorder.ondataavailable = function (e) {
+          chunks.push(e);
+        };
+        recorder.onstop = function () {
+          let blob = new Blob(chunks, { type: "audio/ogg; codecs=opus" }),
+            audioSteam = URL.createObjectURL(blob);
+          chunkList.push(audioSteam);
+          chunks = [];
+        };
+      });
+      mybutton.addEventListener("click", function () {
+        if (!flag) {
+          console.log("录音开始");
+          recorder.start();
+        } else {
+          console.log("录音结束");
+          recorder.stop();
+          // 在这里进行对录音进行处理获取到text之后调用接口
+          let result;
+          if (
+            result.indexOf("下一章") !== -1 ||
+            result.indexOf("下一张") !== -1
+          ) {
+            nextSlide();
+          } else if (
+            result.indexOf("上一章") !== -1 ||
+            result.indexOf("上一张") !== -1
+          ) {
+            prevSlide();
+          }
+        }
+        flag = !flag;
+      });
+    </script>
+  </body>
+</html>
